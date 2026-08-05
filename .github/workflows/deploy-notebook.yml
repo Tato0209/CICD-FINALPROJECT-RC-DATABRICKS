@@ -113,7 +113,7 @@ jobs:
           echo "$clusters_response" | jq -r '.clusters[]? | .cluster_name'
           exit 1
         fi
-    
+  
     - name: Create Databricks Workflow WF_ADB
       run: |
         DEST_HOST=${{ secrets.DATABRICKS_DEST_HOST }}
@@ -468,7 +468,7 @@ jobs:
       run: |
         echo "🎉 ¡Despliegue y ejecución completados exitosamente!"
         echo ""
-        echo "📊 Resumen:"
+        echo "📊 Resumen"
         echo "✅ Notebooks desplegados: ntbk_1, ntbk_2"
         echo "✅ Workflow creado: WF_ADB"
         echo "✅ Tareas configuradas:"
