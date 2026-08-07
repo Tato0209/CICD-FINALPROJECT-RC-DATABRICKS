@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
@@ -113,18 +112,18 @@ jobs:
           echo "$clusters_response" | jq -r '.clusters[]? | .cluster_name'
           exit 1
         fi
-  
+    
     - name: Create Databricks Workflow WF_ADB
       run: |
         DEST_HOST=${{ secrets.DATABRICKS_DEST_HOST }}
         DEST_TOKEN=${{ secrets.DATABRICKS_DEST_TOKEN }}
-        DEST_BASE="/py/scripts/main"
+        DEST_BASE="/py/scripts/yml"
         CLUSTER_ID="${{ env.CLUSTER_ID }}"
         
         echo "Creando workflow: WF_ADB con cluster existente ID: $CLUSTER_ID"
         
         # Crear el JSON del workflow usando cluster existente
-        cat > workflow_config.json << EOF
+        cat > workflow_config.json << 'EOF'
        {
           "name": "WF_ADB",
           "format": "MULTI_TASK",
@@ -215,7 +214,7 @@ jobs:
               "task_key": "Load",
               "description": "Ejecuta notebook Load",
               "notebook_task": {
-                "notebook_path": "/py/scripts/yml/4.- Load",
+                "notebook_path": "/py/scripts/yml/4.Load",
                 "source": "WORKSPACE",
                 "base_parameters": {
                   "catalogo": "catalog_au",
@@ -468,7 +467,7 @@ jobs:
       run: |
         echo "🎉 ¡Despliegue y ejecución completados exitosamente!"
         echo ""
-        echo "📊 Resumen"
+        echo "📊 Resumen:"
         echo "✅ Notebooks desplegados: ntbk_1, ntbk_2"
         echo "✅ Workflow creado: WF_ADB"
         echo "✅ Tareas configuradas:"
