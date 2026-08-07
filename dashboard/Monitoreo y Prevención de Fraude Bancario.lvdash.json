@@ -1,0 +1,996 @@
+{
+  "datasets": [
+    {
+      "name": "fraude_main",
+      "displayName": "Fraude - Datos Principales",
+      "queryLines": [
+        "SELECT\n",
+        "  transaccion_id,\n",
+        "  departamento,\n",
+        "  banco_principal AS banco,\n",
+        "  monto_operacion AS monto_soles,\n",
+        "  score_riesgo,\n",
+        "  nivel_riesgo,\n",
+        "  prioridad_atencion,\n",
+        "  estado_fraude,\n",
+        "  ingestion_date_gold\n",
+        "FROM\n",
+        "  catalog_au.golden.golden_analisis_fraude\n",
+        "WHERE\n",
+        "  (\n",
+        "    :banco IS NULL\n",
+        "    OR CARDINALITY(:banco) = 0\n",
+        "    OR array_contains(:banco, banco_principal)\n",
+        "  )\n",
+        "  AND (\n",
+        "    :departamento IS NULL\n",
+        "    OR CARDINALITY(:departamento) = 0\n",
+        "    OR array_contains(:departamento, departamento)\n",
+        "  )\n",
+        "  AND (\n",
+        "    :nivel_riesgo IS NULL\n",
+        "    OR CARDINALITY(:nivel_riesgo) = 0\n",
+        "    OR array_contains(:nivel_riesgo, nivel_riesgo)\n",
+        "  )\n",
+        "  AND (\n",
+        "    :prioridad IS NULL\n",
+        "    OR CARDINALITY(:prioridad) = 0\n",
+        "    OR array_contains(:prioridad, prioridad_atencion)\n",
+        "  )"
+      ],
+      "parameters": [
+        {
+          "displayName": "Banco",
+          "keyword": "banco",
+          "dataType": "STRING",
+          "complexType": "MULTI",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING"
+            }
+          }
+        },
+        {
+          "displayName": "Departamento",
+          "keyword": "departamento",
+          "dataType": "STRING",
+          "complexType": "MULTI",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING"
+            }
+          }
+        },
+        {
+          "displayName": "Nivel de Riesgo",
+          "keyword": "nivel_riesgo",
+          "dataType": "STRING",
+          "complexType": "MULTI",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING"
+            }
+          }
+        },
+        {
+          "displayName": "Prioridad de Atención",
+          "keyword": "prioridad",
+          "dataType": "STRING",
+          "complexType": "MULTI",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING"
+            }
+          }
+        }
+      ],
+      "columns": [
+        {
+          "displayName": "pct_fraude",
+          "description": "Porcentaje de transacciones en Revisión Inmediata (estado_fraude) sobre el total",
+          "expression": "COUNT_IF(`estado_fraude` = 'Revisión Inmediata') * 100.0 / COUNT(*)"
+        }
+      ]
+    }
+  ],
+  "relationshipGraphs": [
+    {
+      "sources": [
+        {
+          "name": "Fraude__Datos_Principales",
+          "datasetName": "fraude_main"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "8ddb7ad2",
+      "displayName": "Page 1",
+      "layout": [
+        {
+          "widget": {
+            "name": "kpi_total",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "fields": [
+                    {
+                      "name": "count(transaccion_id)",
+                      "expression": "COUNT(`transaccion_id`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Total Transacciones Procesadas",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(transaccion_id)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_pie",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "fields": [
+                    {
+                      "name": "count(transaccion_id)",
+                      "expression": "COUNT(`transaccion_id`)"
+                    },
+                    {
+                      "name": "nivel_riesgo",
+                      "expression": "`nivel_riesgo`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Distribución por Nivel de Riesgo",
+                "showTitle": true
+              },
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "count(transaccion_id)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "transaccion_id"
+                },
+                "color": {
+                  "fieldName": "nivel_riesgo",
+                  "displayName": "nivel_riesgo",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_stacked_bar",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "Fraude__Datos_Principales__nivel_riesgo",
+                      "expression": "`Fraude__Datos_Principales`.`nivel_riesgo`"
+                    },
+                    {
+                      "name": "Fraude__Datos_Principales__banco",
+                      "expression": "`Fraude__Datos_Principales`.`banco`"
+                    },
+                    {
+                      "name": "sum(Fraude__Datos_Principales__monto_soles)",
+                      "expression": "SUM(`Fraude__Datos_Principales`.`monto_soles`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Monto Acumulado por Banco y Nivel de Riesgo",
+                "showTitle": true
+              },
+              "mark": {
+                "layout": "stack"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "Fraude__Datos_Principales__banco",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(Fraude__Datos_Principales__monto_soles)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "Fraude__Datos_Principales__nivel_riesgo",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 5,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_monto_total",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "sum(Fraude__Datos_Principales__monto_soles)",
+                      "expression": "SUM(`Fraude__Datos_Principales`.`monto_soles`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Monto Total Procesado (S/)",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(Fraude__Datos_Principales__monto_soles)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 2
+                    }
+                  },
+                  "formatTemplate": "S/ {{@formatted}}"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "Fraude__Datos_Principales__estado_fraude",
+                      "expression": "`Fraude__Datos_Principales`.`estado_fraude`"
+                    },
+                    {
+                      "name": "Fraude__Datos_Principales__banco",
+                      "expression": "`Fraude__Datos_Principales`.`banco`"
+                    },
+                    {
+                      "name": "count(Fraude__Datos_Principales__transaccion_id)",
+                      "expression": "COUNT(`Fraude__Datos_Principales`.`transaccion_id`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Transacciones por Banco y Estado de Fraude",
+                "showTitle": true
+              },
+              "mark": {
+                "layout": "stack"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "Fraude__Datos_Principales__banco",
+                  "axis": {
+                    "title": "Banco"
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "count(Fraude__Datos_Principales__transaccion_id)",
+                  "axis": {
+                    "title": "Cantidad de Transacciones"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "Fraude__Datos_Principales__estado_fraude",
+                  "legend": {
+                    "title": "Estado de Fraude"
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_horiz_bar",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "count(Fraude__Datos_Principales__transaccion_id)",
+                      "expression": "COUNT(`Fraude__Datos_Principales`.`transaccion_id`)"
+                    },
+                    {
+                      "name": "Fraude__Datos_Principales__departamento",
+                      "expression": "`Fraude__Datos_Principales`.`departamento`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`Fraude__Datos_Principales`.`estado_fraude` IN ('Revisión Inmediata')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Top Departamentos con Operaciones en Revisión Inmediata",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(Fraude__Datos_Principales__transaccion_id)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "Fraude__Datos_Principales__departamento",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_revision",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "count(Fraude__Datos_Principales__transaccion_id)",
+                      "expression": "COUNT(`Fraude__Datos_Principales`.`transaccion_id`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`Fraude__Datos_Principales`.`estado_fraude` IN ('Revisión Inmediata')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Transacciones en Alerta Alta",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(Fraude__Datos_Principales__transaccion_id)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_scatter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "Fraude__Datos_Principales__prioridad_atencion",
+                      "expression": "`Fraude__Datos_Principales`.`prioridad_atencion`"
+                    },
+                    {
+                      "name": "Fraude__Datos_Principales__score_riesgo",
+                      "expression": "`Fraude__Datos_Principales`.`score_riesgo`"
+                    },
+                    {
+                      "name": "Fraude__Datos_Principales__monto_soles",
+                      "expression": "`Fraude__Datos_Principales`.`monto_soles`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Monto vs Score de Riesgo por Prioridad",
+                "showTitle": true
+              },
+              "widgetType": "scatter",
+              "encodings": {
+                "x": {
+                  "fieldName": "Fraude__Datos_Principales__score_riesgo",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "Fraude__Datos_Principales__monto_soles",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "Fraude__Datos_Principales__prioridad_atencion",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 11,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_monto_alto",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "sum(Fraude__Datos_Principales__monto_soles)",
+                      "expression": "SUM(`Fraude__Datos_Principales`.`monto_soles`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`Fraude__Datos_Principales`.`nivel_riesgo` IN ('Alto')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Monto Total en Riesgo Alto (S/)",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(Fraude__Datos_Principales__monto_soles)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 2
+                    }
+                  },
+                  "formatTemplate": "S/ {{@formatted}}"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_banco",
+            "queries": [
+              {
+                "name": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_banco",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "fields": [
+                    {
+                      "name": "banco",
+                      "expression": "`banco`"
+                    },
+                    {
+                      "name": "banco_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_banco",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "parameters": [
+                    {
+                      "name": "banco",
+                      "keyword": "banco"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Banco",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "banco",
+                    "queryName": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_banco"
+                  },
+                  {
+                    "parameterName": "banco",
+                    "queryName": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_banco"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_departamento",
+            "queries": [
+              {
+                "name": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_departamento",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "fields": [
+                    {
+                      "name": "departamento",
+                      "expression": "`departamento`"
+                    },
+                    {
+                      "name": "departamento_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_departamento",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "parameters": [
+                    {
+                      "name": "departamento",
+                      "keyword": "departamento"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Departamento",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "departamento",
+                    "queryName": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_departamento"
+                  },
+                  {
+                    "parameterName": "departamento",
+                    "queryName": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_departamento"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 3,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_nivel_riesgo",
+            "queries": [
+              {
+                "name": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_nivel_riesgo",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "fields": [
+                    {
+                      "name": "nivel_riesgo",
+                      "expression": "`nivel_riesgo`"
+                    },
+                    {
+                      "name": "nivel_riesgo_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_nivel_riesgo",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "parameters": [
+                    {
+                      "name": "nivel_riesgo",
+                      "keyword": "nivel_riesgo"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Nivel de Riesgo",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "nivel_riesgo",
+                    "queryName": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_nivel_riesgo"
+                  },
+                  {
+                    "parameterName": "nivel_riesgo",
+                    "queryName": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_nivel_riesgo"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 3,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_prioridad",
+            "queries": [
+              {
+                "name": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_prioridad_atencion",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "fields": [
+                    {
+                      "name": "prioridad_atencion",
+                      "expression": "`prioridad_atencion`"
+                    },
+                    {
+                      "name": "prioridad_atencion_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_prioridad",
+                "query": {
+                  "datasetName": "fraude_main",
+                  "parameters": [
+                    {
+                      "name": "prioridad",
+                      "keyword": "prioridad"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Prioridad de Atención",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "prioridad_atencion",
+                    "queryName": "dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_prioridad_atencion"
+                  },
+                  {
+                    "parameterName": "prioridad",
+                    "queryName": "parameter_dashboards/01f19286cd5e1ebe9e73a061b28ab101/datasets/01f192874fb716d69149556255587a19_prioridad"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 3,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_pct_fraude",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "measure(Fraude__Datos_Principales__pct_fraude)",
+                      "expression": "MEASURE(`Fraude__Datos_Principales`.`pct_fraude`)"
+                    },
+                    {
+                      "name": "Fraude__Datos_Principales__banco",
+                      "expression": "`Fraude__Datos_Principales`.`banco`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "% de Fraude por Banco",
+                "showTitle": true,
+                "description": "Línea naranja = promedio entre bancos. Barras por encima requieren atención prioritaria.",
+                "showDescription": true
+              },
+              "annotations": [
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "type": "aggregate",
+                    "x": {
+                      "total": {
+                        "fn": "avg"
+                      }
+                    },
+                    "label": {
+                      "value": "Promedio: {{ @ }}%"
+                    },
+                    "color": {
+                      "value": "#FF6B35"
+                    }
+                  }
+                }
+              ],
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "measure(Fraude__Datos_Principales__pct_fraude)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  },
+                  "formatTemplate": "{{@formatted}}%",
+                  "axis": {
+                    "title": "% Revisión Inmediata"
+                  },
+                  "displayName": "% Fraude",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "Fraude__Datos_Principales__banco",
+                  "axis": {
+                    "title": "Banco"
+                  },
+                  "displayName": "Banco",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 23,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
