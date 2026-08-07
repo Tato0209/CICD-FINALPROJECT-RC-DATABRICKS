@@ -20,48 +20,6 @@ El objetivo del proyecto es procesar transacciones bancarias en tiempo real/lote
 
 El pipeline sigue el patrón de diseño **Arquitectura Medallion** (Bronze $\rightarrow$ Silver $\rightarrow$ Gold) integrado con **Unity Catalog** (`catalog_au`):
 
-```text
-                               ┌────────────────────────┐
-                               │   Fuentes Data Lake    │
-                               └───────────┬────────────┘
-                                           │
-                                           ▼
-                               ┌────────────────────────┐
-                               │  1. Prep. Ambiente     │
-                               └───────────┬────────────┘
-                                           │
-                    ┌──────────────────────┴──────────────────────┐
-                    ▼                                             ▼
-       ┌────────────────────────┐                    ┌────────────────────────┐
-       │ 2a. Ingest Clientes    │                    │ 2b. Ingest Transacciones│
-       └───────────┬────────────┘                    └───────────┬────────────┘
-                   │                                             │
-                   └──────────────────────┬──────────────────────┘
-                                          ▼
-                               ┌────────────────────────┐
-                               │   Capa Bronze (Raw)    │
-                               └───────────┬────────────┘
-                                           │
-                                           ▼
-                               ┌────────────────────────┐
-                               │  3. Transform (Silver) │
-                               └───────────┬────────────┘
-                                           │
-                                           ▼
-                               ┌────────────────────────┐
-                               │   4. Load (Gold)       │
-                               └───────────┬────────────┘
-                                           │
-                                           ▼
-                               ┌────────────────────────┐
-                               │ 5. Grants & Gobernanza │
-                               └───────────┬────────────┘
-                                           │
-                                           ▼
-                               ┌────────────────────────┐
-                               │  Lakeview Dashboard    │
-                               └────────────────────────┘
-
 ---
 
 ## 🛠️ 3. Tecnologías Utilizadas
