@@ -133,7 +133,8 @@ jobs:
                 "notebook_path": "/py/scripts/yml/1.Preparacion_Ambiente",
                 "source": "WORKSPACE",
                 "base_parameters": {
-                  "storageName": "adlsrcset1"
+                  "srcData1": "adlsrcset1",
+                  "srcData2": "adlsrcset2"
                 }
               },
               "existing_cluster_id": "$CLUSTER_ID",
@@ -150,7 +151,7 @@ jobs:
                   "container": "raw",
                   "catalogo": "catalog_au",
                   "esquema": "bronze",
-                  "storageName": "adlsrcset1"
+                  "srcData1": "adlsrcset1"
                 }
               },
               "existing_cluster_id": "$CLUSTER_ID",
@@ -172,7 +173,7 @@ jobs:
                   "container": "raw",
                   "catalogo": "catalog_au",
                   "esquema": "bronze",
-                  "storageName": "adlsrcset1"
+                  "srcData2": "adlsrcset2"
                 }
               },
               "existing_cluster_id": "$CLUSTER_ID",
